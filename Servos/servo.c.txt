@@ -1,0 +1,48 @@
+//SMCLK = 48MHZ/4 = 12 MHZ, 83.33 ns
+//Counter counts up to TA0CCR0 and backs down
+//Let Timerclock period T = 8/12MHZ = 666.7ns
+//Period of P2.4 is period * 1.333 us, duty cycle is duty / period
+//Period of P2.5 is period * 1.333 us, duty cycle is duty2/period
+Referenced from the Texas Instruments training videos, will be changing it up a little to be more specific to our project 
+//https://training.ti.com/ti-rslk-module-13-lab-video-13-2-interrupt-latency?context=1135347-1139304-1134881
+#include<msp.h> //Include the library files for the board. This includes the msp432p401r
+
+void PWM_Init12(uint16_t period, uint16_t duty1, uint16_t duty2){
+    P2 -> DIR |= 0x30;     //P2.4, P2.5 output
+    P2 -> SEL0 |= 0x30;    //P2.4, P2.5 Timer 0A functions
+    P2 -> SEL1 &= -0x30;   //P2.4, P2.5 Timer0A functions
+    TIMER_A0 -> CCTL[0] = 0x0080;    //CCIO toggle
+    TIMER_A0 -> CCR[0] = period;     //Period is 2*period*8*83.33ns is 1.333*period
+    TIMER_A0 -> EX0 = 0x0000;        //divide by 1
+    TIMER_A0 -> CCTL[1] = 0x0040;    //CCR1 toggle/reset
+    TIMER_A0 -> CCR[1] = duty1;      //CCR1 duty cycle is duty1/period
+    TIMER_A0 -> CTL = 0x02F0;         //SMCLK = 12MHZ, divide by 8, up-down mode
+
+
+}
+
+//change duty cycle of PWM output on P2.4
+//Inputs: duty1
+//Outputs: None
+//Period of P2.4 is 2*period*666.7ns, duty cycle is duty1/period
+void PWM_Duty1(uint16_t duty1){
+    TIMER_A0 -> CCR[1] = duty1;
+}
+
+void PWM_Duty2(uint16_t duty2){
+    TIMER_A0 -> CCR[2] = duty2;
+}
+
+int main(void){
+    WDT_A->CTL= WDT_A_CTL_PW | WDT_A_CTL_HOLD; //Stop watchdog timer
+    PWM_Init12(1.5,1,1);
+    PWM_Duty1(2);
+    /*
+    while(1){
+        PWM_Init12(1.5,1,1);
+        //P2 -> OUT |= 0x01;
+        //for(int i = 0; i < 50000; i++);
+        //P2 -> OUT ^= 0x01;
+    }
+    */
+}
