@@ -128,6 +128,6 @@ void TA0_N_IRQHandler(void){
     a = TIMER_A1->CCR[2] - TIMER_A1->CCR[1];    //substracting positive edge count from negative edge
     a=(a/(187500));   //converts count to time based on input clock frequency
     a=a*(170);   //converts time to distance
-    a=(-.6425)*a+.7223;    //error correction function, experimentally determined, may need to be adjusted for individual sensors
+    a=(.2422)*a-.0037;    //error correction function, experimentally determined, may need to be adjusted for individual sensors
     printf("%.5lf \n", a);  //prints distance to the console, useful for debugging
 }
